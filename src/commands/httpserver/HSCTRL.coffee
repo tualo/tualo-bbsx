@@ -120,6 +120,7 @@ class HSCTRL extends HSCMD
         console.log '!!! start the job'
         fn = () ->
           console.log 'start startJob'
+          @initStartJobMessage()
           @startJob()
         setTimeout fn.bind(@), 2000
       else
