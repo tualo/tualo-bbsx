@@ -291,7 +291,7 @@ class HSCTRL extends HSCMD
     #if message.type_of_message == Message.TYPE_BBS_STOP_PRINTJOB
     @message = message
     #@once 'ctrl_message', (message) => @onCloseService(message)
-    @sendCloseService()
+    @ctrlSendCloseService()
     #else
     #  @unexpected message
 
