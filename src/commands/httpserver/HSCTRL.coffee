@@ -133,10 +133,7 @@ class HSCTRL extends HSCMD
           @stopJob()
         setTimeout fn.bind(@), 2000
 
-      fn = () ->
-        console.log 'start statusLight'
-        @statusLight()
-      setTimeout fn.bind(@), 2000
+ 
      # @once 'ctrl_message', (message) => @onCloseService(message)
       @ctrlSendCloseService()
     else
