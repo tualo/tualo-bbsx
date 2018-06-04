@@ -244,9 +244,6 @@ class HSCTRL extends HSCMD
       @ctrlSendCloseService()
 
 
-      fn = () ->
-        @statusLight()
-      setTimeout fn.bind(@), 2000
     
       
       if process.env.DEBUG_BBS_STARTJOB=='1'
@@ -256,7 +253,13 @@ class HSCTRL extends HSCMD
         console.log 'StartPrintjob', 'TYPE_ACK', message
         console.log 'TYPE_ACK'
       #@once 'ctrl_message', (message) => @onCloseService(message)
+      
       @ctrlSendCloseService()
+
+      fn = () ->
+        @statusLight()
+      setTimeout fn.bind(@), 2000
+      
     else
       #if process.env.DEBUG_BBS_STARTJOB=='1'
       console.log 'StartPrintjob', 'something went wrong', message.type_of_message
