@@ -97,7 +97,7 @@ class HSCTRL extends HSCMD
 
   # ++++++++++ STATUS
   statusLight: () ->
-    console.log('get status light')
+    console.log 'get status light'
     @once 'ctrl_message', (message) => @ctrlOnOpenService(message)
     @ctrlSendOpenService Message.SERVICE_STATUS_LIGHT
 
@@ -116,6 +116,19 @@ class HSCTRL extends HSCMD
     if message.type_of_message == Message.TYPE_BBS_RETURN_STATUS_LIGHT
       @message = message
       console.log '####',message
+      if message.print_job_active==0
+        console.log '!!! start the job'
+        fn = () ->
+          console.log 'start startJob'
+          @startJob()
+        setTimeout fn.bind(@), 2000
+      else
+        console.log '!!! stop the job'
+        fn = () ->
+          console.log 'start stopJob'
+          @stopJob()
+        setTimeout fn.bind(@), 2000
+
       fn = () ->
         console.log 'start statusLight'
         @statusLight()
@@ -242,5 +255,41 @@ class HSCTRL extends HSCMD
       #@unexpected message
     #else
     #  @unexpected message
-  # ------ STOP JOB
+  # ------ START JOB
     
+
+  # ++++++ STOP JOB
+  stopJob: () ->
+    
+    @once 'ctrl_message', (message) => @ctrlOnOpenStopJobService(message)
+    @ctrlSendOpenService Message.SERVICE_BBS_PRINTJOB
+
+  ctrlOnOpenStopJobService: (message) ->
+    #if process.env.DEBUG_BBS_STOPJOB=='1'
+    console.log 'MSG2CUSTOPPRINTJOB','onOpenService',message.type_of_message,message.serviceID
+    if message.type_of_message == Message.TYPE_ACK and message.serviceID == Message.SERVICE_BBS_PRINTJOB
+      @once 'ctrl_message', (message) => @ctrlOnStopPrintJob(message)
+      @ctrlSendStopPrintJob()
+    else
+      @unexpected message
+
+  ctrlOnStopPrintJob: (message) ->
+    if process.env.DEBUG_BBS_STOPJOB=='1'
+      console.log 'MSG2CUSTOPPRINTJOB','onStopPrintJob',message,'Message.TYPE_BBS_STOP_PRINTJOB',Message.TYPE_BBS_STOP_PRINTJOB
+    #if message.type_of_message == Message.TYPE_BBS_STOP_PRINTJOB
+    @message = message
+    #@once 'ctrl_message', (message) => @onCloseService(message)
+    @sendCloseService()
+    #else
+    #  @unexpected message
+
+  ctrlSendStopPrintJob: () ->
+    if process.env.DEBUG_BBS_STOPJOB=='1'
+      console.log 'MSG2CUSTOPPRINTJOB','stopPrintJob'
+    stop_message = new MSG2CUSTOPPRINTJOB
+    sendbuffer = stop_message.toFullByteArray()
+    sizemessage = new MSG2CUPREPARESIZE
+    sizemessage.setSize sendbuffer.length
+    @client.write sizemessage.getBuffer()
+    @client.write sendbuffer
+  # ------ STOP JOB
