@@ -24,7 +24,7 @@ class HSCTRL extends HSCMD
     console.log "HSCTRL", "initCtrlPort"
 
     @client = Net.createConnection @args.machine_port, @args.machine_ip, () => @onConnect()
-    @client.setTimeout 3000
+    @client.setTimeout 1100
 
     @client.on 'timeout', (err) ->
       if process.env.DEBUG_BBS_CONTROLLER=='1'
