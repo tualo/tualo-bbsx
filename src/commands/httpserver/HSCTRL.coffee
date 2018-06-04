@@ -50,7 +50,7 @@ class HSCTRL extends HSCMD
     if process.env.DEBUG_BBS_CONTROLLER=='1'
       console.log '-----'
 
-  onData: () ->
+  onData: (data) ->
     console.log 'HSCTRL','onData',data
     message = MessageWrapper.getMessageObject data
     if message==-1
