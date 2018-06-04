@@ -13,7 +13,7 @@ class HSCTRL extends HSCMD
     @lasteventname = 'none'
     console.log "HSCTRL", "initCtrlPort"
 
-    @client = Net.createConnection @port, @ip, () => @onConnect()
+    @client = Net.createConnection @args.machine_port, @args.machine_ip, () => @onConnect()
     @client.setTimeout 3000
 
     @client.on 'timeout', (err) ->
