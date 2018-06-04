@@ -97,6 +97,7 @@ class HSCTRL extends HSCMD
 
   # ++++++++++ STATUS
   statusLight: () ->
+    console.log('get status light')
     @once 'ctrl_message', (message) => @ctrlOnOpenService(message)
     @ctrlSendOpenService Message.SERVICE_STATUS_LIGHT
 
