@@ -245,6 +245,13 @@ class HSCTRL extends HSCMD
       @message = message
       #@once 'ctrl_message', (message) => @onCloseService(message)
       @ctrlSendCloseService()
+
+
+      fn = () ->
+        @statusLight()
+      setTimeout fn.bind(@), 2000
+    
+      
       if process.env.DEBUG_BBS_STARTJOB=='1'
         console.log 'ok closing'
     else if message.type_of_message == Message.TYPE_ACK
