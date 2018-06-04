@@ -35,9 +35,13 @@ class HSCTRL extends HSCMD
     @client.setNoDelay true
     @client.on 'close', () => @onClose()
     @client.on 'end', () => @onEnd()
+    @client.on 'data', (data) => @onData(data)
     
     if process.env.DEBUG_BBS_CONTROLLER=='1'
       console.log '-----'
+
+  onData: () ->
+    console.log 'HSCTRL','onData',data
 
   onClose: () ->
     @emit "ctrl_closed",@lasteventname
