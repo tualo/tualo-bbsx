@@ -112,7 +112,8 @@ class HSCTRL extends HSCMD
       console.log('onGetStatusLight',message,Message.TYPE_BBS_RETURN_STATUS_LIGHT)
     if message.type_of_message == Message.TYPE_BBS_RETURN_STATUS_LIGHT
       @message = message
-      @once 'ctrl_message', (message) => @onCloseService(message)
+      onsole.log '####',message
+     # @once 'ctrl_message', (message) => @onCloseService(message)
       @ctrlSendCloseService()
     else
   #    @unexpected message
