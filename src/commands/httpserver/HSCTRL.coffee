@@ -113,6 +113,10 @@ class HSCTRL extends HSCMD
     if message.type_of_message == Message.TYPE_BBS_RETURN_STATUS_LIGHT
       @message = message
       console.log '####',message
+      fn = () ->
+        console.log 'start statusLight'
+        @statusLight()
+      setTimeout fn.bind(@), 2000
      # @once 'ctrl_message', (message) => @onCloseService(message)
       @ctrlSendCloseService()
     else
