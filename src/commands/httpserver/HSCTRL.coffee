@@ -94,6 +94,8 @@ class HSCTRL extends HSCMD
     @client.write sendbuffer
 
 
+
+  # ++++++++++ STATUS
   statusLight: () ->
     @once 'ctrl_message', (message) => @ctrlOnOpenService(message)
     @ctrlSendOpenService Message.SERVICE_STATUS_LIGHT
@@ -130,3 +132,114 @@ class HSCTRL extends HSCMD
     sizemessage.setSize sendbuffer.length
     @client.write sizemessage.getBuffer()
     @client.write sendbuffer
+  # ------ STATUS
+
+
+
+
+  # ++++++ START JOB
+  setJobId: (val) ->
+    @start_message.setJobId parseInt(val)
+  setCustomerId: (val) ->
+    @start_message.setCustomerId parseInt(val)
+  setPrintDate: (val) ->
+    @start_message.setPrintDate parseInt(val)
+  setDateAhead: (val) ->
+    @start_message.setDateAhead parseInt(val)
+  setWeightMode: (val) ->
+    @start_message.setWeightMode parseInt(val)
+  setPrintOffset: (val) ->
+    @start_message.setPrintOffset parseInt(val)
+  setImageId: (val) ->
+    @start_message.setImageId parseInt(val)
+  setPrintEndorsement: (val) ->
+    @start_message.setPrintEndorsement parseInt(val)
+  setEndorsementID: (val) ->
+    @start_message.setEndorsementID parseInt(val)
+  setEndorsementText1: (val) ->
+    @start_message.setEndorsementText1 val
+  setEndorsementText2: (val) ->
+    @start_message.setEndorsementText2 val
+  setAdvert: (val) ->
+    @start_message.setAdvert val
+  setAdvertHex: (val) ->
+    try
+      console.log 'StartPrintjob setAdvertHex', val
+      @start_message.setAdvert Buffer.from(val,'base64')
+    catch e
+      console.log 'StartPrintjob setAdvertHex error', val
+      @start_message.setAdvert new Buffer(val,'base64')
+
+  setTownCircleID: (val) ->
+    @start_message.setTownCircleID parseInt(val)
+  setTownCircle: (val) ->
+    @start_message.setTownCircle val
+  setCustomerNumber: (val) ->
+    @start_message.setCustomerNumber val
+  setImprintChannelIP: (val) ->
+    @start_message.setImprintChannelIP val
+  setImprintChannelPort: (val) ->
+    @start_message.setImprintChannelPort parseInt(val)
+
+
+  initStartJobMessage: () ->
+    if process.env.DEBUG_BBS_STARTJOB=='1'
+      console.log 'StartPrintjob', 'init'
+    @start_message = new MSG2CUSTARTPRINTJOB
+  
+  ctrlSendStartPrintJob: () ->
+    if process.env.DEBUG_BBS_STARTJOB=='1'
+      console.log "start message>",@start_message
+    sendbuffer = @start_message.toFullByteArray()
+    sizemessage = new MSG2CUPREPARESIZE
+    sizemessage.setSize sendbuffer.length
+    if process.env.DEBUG_BBS_STARTJOB=='1'
+      console.log "sizemessage> ", sizemessage.getBuffer().toString('hex')
+    @client.write sizemessage.getBuffer()
+
+    if process.env.DEBUG_BBS_STARTJOB=='1'
+      console.log "sendbuffer> ", sendbuffer.toString('hex')
+      console.log "image> ", @start_message.advert.toString('hex')
+      console.log "image> ", @start_message.advert.toString('base64')
+    @client.write sendbuffer
+
+
+  startJob: () ->
+    @once 'ctrl_message', (message) => @ctrlOnOpenStartJobService(message)
+    @ctrlSendOpenService Message.SERVICE_BBS_PRINTJOB
+
+  ctrlOnOpenStartJobService: (message) ->
+    if process.env.DEBUG_BBS_STATUS=='1'
+      console.log message
+    if message.type_of_message == Message.TYPE_ACK and message.serviceID == Message.SERVICE_BBS_PRINTJOB
+      @once 'ctrl_message', (message) => @ctrlOnStartPrintJob(message)
+      if process.env.DEBUG_BBS_STATUS=='1'
+        console.log('ctrlSendStatusLight')
+      @ctrlSendStartPrintJob()
+
+  ctrlOnStartPrintJob: (message) ->
+    #if process.env.DEBUG_BBS_STARTJOB=='1'
+    console.log 'StartPrintjob', 'onStartPrintJob', message
+    if message.type_of_message == Message.TYPE_BBS_START_PRINTJOB
+      if process.env.DEBUG_BBS_STARTJOB=='1'
+        console.log 'StartPrintjob', 'TYPE_BBS_START_PRINTJOB', message
+        console.log 'TYPE_BBS_START_PRINTJOB'
+      @message = message
+      #@once 'ctrl_message', (message) => @onCloseService(message)
+      @ctrlSendCloseService()
+      if process.env.DEBUG_BBS_STARTJOB=='1'
+        console.log 'ok closing'
+    else if message.type_of_message == Message.TYPE_ACK
+      if process.env.DEBUG_BBS_STARTJOB=='1'
+        console.log 'StartPrintjob', 'TYPE_ACK', message
+        console.log 'TYPE_ACK'
+      #@once 'ctrl_message', (message) => @onCloseService(message)
+      @ctrlSendCloseService()
+    else
+      #if process.env.DEBUG_BBS_STARTJOB=='1'
+      console.log 'StartPrintjob', 'something went wrong', message.type_of_message
+      #@unexpected message
+    #else
+    #  @unexpected message
+  # ------ STOP JOB
+    
