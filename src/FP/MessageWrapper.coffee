@@ -54,9 +54,9 @@ class MessageWrapper
       #    else
       #      return -1
 
-      if process.env.DEBUG_BBS_MSG=='1'
-        console.log 'message_type',message_type
-        console.log 'message_interface',message_interface
+      #if process.env.DEBUG_BBS_MSG=='1'
+      console.log 'message_type',message_type
+      console.log 'message_interface',message_interface
       if message_type == 65535
         if process.env.DEBUG_BBS_MSG=='1'
           console.log "MSG>>>",data.slice(18).toString('ascii')

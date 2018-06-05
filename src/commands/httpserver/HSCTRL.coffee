@@ -62,6 +62,7 @@ class HSCTRL extends HSCMD
       me.state = -1
       #if me.client.destroyed
       #  setTimeout me.initCtrlPort.bind(me),500
+    @client.setTimeout 990
     @client.setNoDelay true
     @client.on 'close', () => @onClose()
     @client.on 'end', () => @onEnd()
