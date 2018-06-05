@@ -94,7 +94,8 @@ class MessageWrapper
         msg = new MSG2CUSTOPPRINTJOB
 
       if message_type == Message.TYPE_PREPARE_SIZE
-        msg = new MSG2CUPREPARESIZE
+        if message_interface==5
+          msg = new MSG2CUPREPARESIZE
 
       if message_type == Message.TYPE_BBS_GET_STATUS
         msg = new MSG2CUGETSTATUS
