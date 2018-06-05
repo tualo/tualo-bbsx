@@ -191,12 +191,12 @@ class HSCTRL extends HSCMD
   setAdvert: (val) ->
     @start_message.setAdvert val
   setAdvertHex: (val) ->
-    try
-      console.log 'StartPrintjob setAdvertHex', val
-      @start_message.setAdvert Buffer.from(val,'base64')
-    catch e
-      console.log 'StartPrintjob setAdvertHex error', val
-      @start_message.setAdvert new Buffer(val,'base64')
+    #try
+    #  console.log 'StartPrintjob setAdvertHex', val
+    #  @start_message.setAdvert Buffer.from(val,'base64')
+    #catch e
+    #  console.log 'StartPrintjob setAdvertHex error', val
+    #  @start_message.setAdvert new Buffer(val,'base64')
 
   setTownCircleID: (val) ->
     @start_message.setTownCircleID parseInt(val)
