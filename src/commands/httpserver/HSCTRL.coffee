@@ -20,32 +20,41 @@ module.exports =
 class HSCTRL extends HSCMD
   constructor: ->
     super()
+    @serviceOpen = false
     @on 'start', @initCtrlPort
     
   initCtrlPort: () ->
     me = @
+    clearTimeout @initTimer
     @lasteventname = 'none'
     console.log "HSCTRL", "initCtrlPort"
+    fn = () ->
+      clearTimeout me.ctrlConnectionTimeout
+      if me.client.connecting
+        me.client.destroy()
+        console.log 'CTRL','connection timeout'
+        setTimeout me.initCtrlPort.bind(me),500
+
+    @ctrlConnectionTimeout = setTimeout fn,1000
 
     @client = Net.createConnection @args.machine_port, @args.machine_ip, () => @onConnect()
-    @client.setTimeout 1100
-
     @client.on 'timeout', (err) ->
       if process.env.DEBUG_BBS_CONTROLLER=='1'
         console.log 'controller socket timeout'
       me.emit 'ctrl_timeout', {msg:'socket timeout',code:'ETIMEDOUT',address:me.ip}
-
     @client.on 'error', (err) ->
-
       if err.code=='EADDRNOTAVAIL'
         console.error 'HSCTRL','machine offline'
         me.emit 'ctrl_offline', 'machine offline'
-        setTimeout me.initCtrlPort.bind(me),1000
+      else if err.code=='ECONNREFUSED'
+        console.error 'HSCTRL','machine offline refused'
+        me.emit 'ctrl_offline', 'machine offline'
       else
-        console.error 'HSCTRL','error'
+        console.error 'HSCTRL','error','des',        me.client.destroyed
         console.trace err
         me.emit 'ctrl_error', err
-
+      if me.client.destroyed
+        setTimeout me.initCtrlPort.bind(me),500
     @client.setNoDelay true
     @client.on 'close', () => @onClose()
     @client.on 'end', () => @onEnd()
@@ -62,12 +71,21 @@ class HSCTRL extends HSCMD
     @emit 'ctrl_message', message
 
   onClose: () ->
+    console.log 'HSCTRL','onClose'
     @emit "ctrl_closed",@lasteventname
 
+    clearTimeout @initTimer
+    @initTimer = setTimeout @initCtrlPort.bind(@),500
+
   onEnd: () ->
+    console.log 'HSCTRL','onEnd'
     @emit "ctrl_end",@lasteventname
 
   onConnect: () ->
+    @serviceOpen = false
+    if @statusTimer
+      clearTimeout @statusTimer
+    clearTimeout @ctrlConnectionTimeout
     #if process.env.DEBUG_BBS_CONTROLLER=='1'
     console.log 'onConnect'
     @emit 'ctrl_ready'
@@ -79,16 +97,18 @@ class HSCTRL extends HSCMD
 
 
   ctrlSendCloseService: () ->
-
     message = new MSG2CUCLOSESERVICE
     sendbuffer = message.toFullByteArray()
     sizemessage = new MSG2CUPREPARESIZE
     sizemessage.setSize sendbuffer.length
     @client.write sizemessage.getBuffer()
     @client.write sendbuffer
+    @serviceOpen=false
+
 
   ctrlSendOpenService: (type) ->
-
+    if @serviceOpen==true
+      throw Error('service is allready opened')
     message = new MSG2CUOPENSERVICE
     message.setServiceID(type)
     sendbuffer = message.toFullByteArray()
@@ -96,14 +116,22 @@ class HSCTRL extends HSCMD
     sizemessage.setSize sendbuffer.length
     @client.write sizemessage.getBuffer()
     @client.write sendbuffer
-
+    @serviceOpen=true
 
 
   # ++++++++++ STATUS
   statusLight: () ->
-    console.log 'get status light'
-    @once 'ctrl_message', (message) => @ctrlOnOpenService(message)
-    @ctrlSendOpenService Message.SERVICE_STATUS_LIGHT
+    
+    clearTimeout @statusTimer
+    if @client.destroyed==true
+      return
+    if @serviceOpen==true
+      console.log 'get status light DEFERED'
+      @statusTimer = setTimeout @statusLight.bind(@), 100
+    else
+      console.log 'get status light'
+      @once 'ctrl_message', (message) => @ctrlOnOpenService(message)
+      @ctrlSendOpenService Message.SERVICE_STATUS_LIGHT
 
   ctrlOnOpenService: (message) ->
     if process.env.DEBUG_BBS_STATUS=='1'
@@ -118,25 +146,9 @@ class HSCTRL extends HSCMD
     if process.env.DEBUG_BBS_STATUS=='1'
       console.log('onGetStatusLight',message,Message.TYPE_BBS_RETURN_STATUS_LIGHT)
     if message.type_of_message == Message.TYPE_BBS_RETURN_STATUS_LIGHT
-      @message = message
-      console.log '####',message
-      if message.print_job_active==0
-        console.log '!!! start the job'
-        fn = () ->
-          console.log 'start startJob'
-          @initStartJobMessage()
-          @startJob()
-        setTimeout fn.bind(@), 2000
-      else
-        console.log '!!! stop the job'
-        fn = () ->
-          console.log 'start stopJob'
-          @stopJob()
-        setTimeout fn.bind(@), 2000
-
- 
-     # @once 'ctrl_message', (message) => @onCloseService(message)
+      @lastState = message
       @ctrlSendCloseService()
+      setTimeout @statusLight.bind(@),1000
     else
   #    @unexpected message
 
@@ -221,8 +233,12 @@ class HSCTRL extends HSCMD
 
 
   startJob: () ->
-    @once 'ctrl_message', (message) => @ctrlOnOpenStartJobService(message)
-    @ctrlSendOpenService Message.SERVICE_BBS_PRINTJOB
+    if @serviceOpen==true
+      console.log 'startJob DEFERED'
+      setTimeout @startJob.bind(@), 500
+    else
+      @once 'ctrl_message', (message) => @ctrlOnOpenStartJobService(message)
+      @ctrlSendOpenService Message.SERVICE_BBS_PRINTJOB
 
   ctrlOnOpenStartJobService: (message) ->
     if process.env.DEBUG_BBS_STATUS=='1'
@@ -234,50 +250,34 @@ class HSCTRL extends HSCMD
       @ctrlSendStartPrintJob()
 
   ctrlOnStartPrintJob: (message) ->
-    #if process.env.DEBUG_BBS_STARTJOB=='1'
     console.log 'StartPrintjob', 'onStartPrintJob', message
     if message.type_of_message == Message.TYPE_BBS_START_PRINTJOB
       if process.env.DEBUG_BBS_STARTJOB=='1'
         console.log 'StartPrintjob', 'TYPE_BBS_START_PRINTJOB', message
         console.log 'TYPE_BBS_START_PRINTJOB'
-      @message = message
-      #@once 'ctrl_message', (message) => @onCloseService(message)
       @ctrlSendCloseService()
-
-
-    
-      
       if process.env.DEBUG_BBS_STARTJOB=='1'
         console.log 'ok closing'
     else if message.type_of_message == Message.TYPE_ACK
       if process.env.DEBUG_BBS_STARTJOB=='1'
         console.log 'StartPrintjob', 'TYPE_ACK', message
         console.log 'TYPE_ACK'
-      #@once 'ctrl_message', (message) => @onCloseService(message)
-      
       @ctrlSendCloseService()
-
-      fn = () ->
-        @statusLight()
-      setTimeout fn.bind(@), 2000
-      
     else
-      #if process.env.DEBUG_BBS_STARTJOB=='1'
       console.log 'StartPrintjob', 'something went wrong', message.type_of_message
-      #@unexpected message
-    #else
-    #  @unexpected message
   # ------ START JOB
     
 
   # ++++++ STOP JOB
   stopJob: () ->
-    
-    @once 'ctrl_message', (message) => @ctrlOnOpenStopJobService(message)
-    @ctrlSendOpenService Message.SERVICE_BBS_PRINTJOB
+    if @serviceOpen==true
+      console.log 'stopJob DEFERED'
+      setTimeout @stopJob.bind(@), 100
+    else
+      @once 'ctrl_message', (message) => @ctrlOnOpenStopJobService(message)
+      @ctrlSendOpenService Message.SERVICE_BBS_PRINTJOB
 
   ctrlOnOpenStopJobService: (message) ->
-    #if process.env.DEBUG_BBS_STOPJOB=='1'
     console.log 'MSG2CUSTOPPRINTJOB','onOpenService',message.type_of_message,message.serviceID
     if message.type_of_message == Message.TYPE_ACK and message.serviceID == Message.SERVICE_BBS_PRINTJOB
       @once 'ctrl_message', (message) => @ctrlOnStopPrintJob(message)
@@ -288,12 +288,7 @@ class HSCTRL extends HSCMD
   ctrlOnStopPrintJob: (message) ->
     if process.env.DEBUG_BBS_STOPJOB=='1'
       console.log 'MSG2CUSTOPPRINTJOB','onStopPrintJob',message,'Message.TYPE_BBS_STOP_PRINTJOB',Message.TYPE_BBS_STOP_PRINTJOB
-    #if message.type_of_message == Message.TYPE_BBS_STOP_PRINTJOB
-    @message = message
-    #@once 'ctrl_message', (message) => @onCloseService(message)
     @ctrlSendCloseService()
-    #else
-    #  @unexpected message
 
   ctrlSendStopPrintJob: () ->
     if process.env.DEBUG_BBS_STOPJOB=='1'

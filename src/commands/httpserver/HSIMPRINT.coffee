@@ -16,7 +16,7 @@ class HSIMPRINT extends HSMYSQL
       @imprint.open()
 
   onImprint: (imprint) ->
-    imprint.job_id = @currentJobID
+    imprint.job_id = @job_id
     @lastimprint=imprint
     @lastimprinttime=(new Date()).getTime()
     message=imprint
@@ -79,7 +79,7 @@ class HSIMPRINT extends HSMYSQL
     sql  = sql.replace('{thickness}',message.mail_thickness)
     sql  = sql.replace('{weight}',message.mail_weight)
 
-    sql  = sql.replace('{job_id}',message.job_id)
+    sql  = sql.replace('{job_id}',@job_id)
     sql  = sql.replace('{machine_no}',message.machine_no)
     sql  = sql.replace('{waregroup}',me.waregroup)
     sql  = sql.replace('{addressfield}',me.addressfield)
@@ -90,48 +90,21 @@ class HSIMPRINT extends HSMYSQL
     fn = (err, connection) ->
       me.lastSQLError=null
       if err
-        if process.env.DEBUG_BBS_HTTPSERVER=='1'
-          console.log 'ERROR on MYSQL Connection'
+        console.log 'ERROR on MYSQL Connection'
         console.trace err
         me.lastSQLError = err.message
-        errorFN = (errMessage) =>
-          if process.env.DEBUG_BBS_HTTPSERVER=='1'
-            console.log 'stopJob','errorFN',errMessage
-        closeFN = (message) =>
-          me.currentJob ''
-          if process.env.DEBUG_BBS_HTTPSERVER=='1'
-            console.log 'stopJob','closeFN', 'on MYSQL Connection'
-        doneFN = (message) =>
-          me.currentJob ''
-          if process.env.DEBUG_BBS_HTTPSERVER=='1'
-            console.log 'stopJob','doneFN', 'on MYSQL Connection'
-        me.controller 'getStopPrintjob',closeFN,doneFN,errorFN
+        me.stopJob()
       else
-        if process.env.DEBUG_BBS_HTTPSERVER=='1'
-          console.log 'write db'
+        console.log 'write db'
         connection.query sql, (err, rows, fields) ->
           me.lastSQLError=null
-          if process.env.DEBUG_BBS_HTTPSERVER=='1'
-            console.log 'write db returned'
+          console.log 'write db returned',err
           if err
             me.lastSQLError = err.message
-            if process.env.DEBUG_BBS_HTTPSERVER=='1'
-              console.trace err
             if err.code!='ER_DUP_KEY'
-              errorFN = (errMessage) =>
-                if process.env.DEBUG_BBS_HTTPSERVER=='1'
-                  console.log 'stopJob','errorFN',errMessage
-              closeFN = (message) =>
-                me.currentJob ''
-                if process.env.DEBUG_BBS_HTTPSERVER=='1'
-                  console.log 'stopJob','closeFN', 'db write error'
-              doneFN = (message) =>
-                me.currentJob ''
-                if process.env.DEBUG_BBS_HTTPSERVER=='1'
-                  console.log 'stopJob','doneFN', 'db write error'
-              me.controller 'getStopPrintjob',closeFN,doneFN,errorFN
+              me.stopJob()
+            else
+              console.trace err
           connection.release()
-
     me.pool.getConnection fn
-    if process.env.DEBUG_BBS_HTTPSERVER=='1'
-      console.log 'imprint--------------',imprint
+    console.log 'imprint--------------',imprint
