@@ -21,32 +21,26 @@ class HSCTRL extends HSCMD
   constructor: ->
     super()
     @serviceOpen = false
-    @state = 0
-    @lastState = null
-    @statusLightTimer = setInterval @statusLight.bind(@),2500
-    #@on 'start', @initCtrlPort
+    @on 'start', @initCtrlPort
     
   initCtrlPort: () ->
     me = @
-    #clearTimeout @initTimer
-    #@lasteventname = 'none'
+    clearTimeout @initTimer
+    @lasteventname = 'none'
     console.log "HSCTRL", "initCtrlPort"
     fn = () ->
       clearTimeout me.ctrlConnectionTimeout
       if me.client.connecting
         me.client.destroy()
         console.log 'CTRL','connection timeout'
-        me.emit 'ctrl_timeout', {msg:'socket timeout',code:'ETIMEDOUT',address:me.ip}
-        me.state = -1
-        #setTimeout me.initCtrlPort.bind(me),500
+        setTimeout me.initCtrlPort.bind(me),500
 
-    #@ctrlConnectionTimeout = setTimeout fn,1000
+    @ctrlConnectionTimeout = setTimeout fn,1000
 
     @client = Net.createConnection @args.machine_port, @args.machine_ip, () => @onConnect()
     @client.on 'timeout', (err) ->
       if process.env.DEBUG_BBS_CONTROLLER=='1'
         console.log 'controller socket timeout'
-        me.state = -1
       me.emit 'ctrl_timeout', {msg:'socket timeout',code:'ETIMEDOUT',address:me.ip}
     @client.on 'error', (err) ->
       if err.code=='EADDRNOTAVAIL'
@@ -59,9 +53,8 @@ class HSCTRL extends HSCMD
         console.error 'HSCTRL','error','des',        me.client.destroyed
         console.trace err
         me.emit 'ctrl_error', err
-      me.state = -1
-      #if me.client.destroyed
-      #  setTimeout me.initCtrlPort.bind(me),500
+      if me.client.destroyed
+        setTimeout me.initCtrlPort.bind(me),500
     @client.setNoDelay true
     @client.on 'close', () => @onClose()
     @client.on 'end', () => @onEnd()
@@ -71,34 +64,35 @@ class HSCTRL extends HSCMD
       console.log '-----'
 
   onData: (data) ->
-    #@currentDatas.push data
-    hex = data.toString('hex')
-    console.log 'HSCTRL','onData',hex
+    console.log 'HSCTRL','onData',data
     message = MessageWrapper.getMessageObject data
-    console.log 'HSCTRL','onData',message
-    if message.type_of_message == Message.TYPE_PREPARE_SIZE
-      buf = Buffer.from hex.substr(20),'hex'
-      console.log 'HSCTRL','TYPE_PREPARE_SIZE',hex.substr(20), buf
-      if buf.length>0
-        message = MessageWrapper.getMessageObject buf
-        console.log 'HSCTRL','>>>>>>',message
-        @emit 'ctrl_message', message
-    else
-      @emit 'ctrl_message', message
-    
+    if message==-1
+      return
+    @emit 'ctrl_message', message
 
   onClose: () ->
     console.log 'HSCTRL','onClose'
+    @emit "ctrl_closed",@lasteventname
+
+    clearTimeout @initTimer
+    @initTimer = setTimeout @initCtrlPort.bind(@),500
 
   onEnd: () ->
     console.log 'HSCTRL','onEnd'
+    @emit "ctrl_end",@lasteventname
 
   onConnect: () ->
     @serviceOpen = false
+    if @statusTimer
+      clearTimeout @statusTimer
     clearTimeout @ctrlConnectionTimeout
+    #if process.env.DEBUG_BBS_CONTROLLER=='1'
     console.log 'onConnect'
-    @state = 1
     @emit 'ctrl_ready'
+    fn = () ->
+      console.log 'start statusLight'
+      @statusLight()
+    setTimeout fn.bind(@), 2000
 
 
 
@@ -110,7 +104,6 @@ class HSCTRL extends HSCMD
     @client.write sizemessage.getBuffer()
     @client.write sendbuffer
     @serviceOpen=false
-    @emit 'ctrl_closeservice'
 
 
   ctrlSendOpenService: (type) ->
@@ -118,28 +111,17 @@ class HSCTRL extends HSCMD
       throw Error('service is allready opened')
     message = new MSG2CUOPENSERVICE
     message.setServiceID(type)
-
     sendbuffer = message.toFullByteArray()
     sizemessage = new MSG2CUPREPARESIZE
     sizemessage.setSize sendbuffer.length
     @client.write sizemessage.getBuffer()
     @client.write sendbuffer
-
     @serviceOpen=true
 
 
   # ++++++++++ STATUS
   statusLight: () ->
-    @once 'ctrl_ready', () =>
-      console.log 'get status _statusLight'
-      @_statusLight()
-
-    @once 'ctrl_closeservice', () =>
-      console.log 'get status ctrl_closeservice'
-      @client.end()
-    @initCtrlPort()
-
-  _statusLight: () ->
+    
     clearTimeout @statusTimer
     if @client.destroyed==true
       return
@@ -152,18 +134,21 @@ class HSCTRL extends HSCMD
       @ctrlSendOpenService Message.SERVICE_STATUS_LIGHT
 
   ctrlOnOpenService: (message) ->
-    console.log 'ctrlOnOpenService', message,  Message.SERVICE_STATUS_LIGHT, Message.TYPE_ACK
+    if process.env.DEBUG_BBS_STATUS=='1'
+      console.log message
     if message.type_of_message == Message.TYPE_ACK and message.serviceID == Message.SERVICE_STATUS_LIGHT
       @once 'ctrl_message', (message) => @ctrlOnGetStatusLight(message)
-      console.log 'ctrlSendStatusLight'
+      if process.env.DEBUG_BBS_STATUS=='1'
+        console.log('ctrlSendStatusLight')
       @ctrlSendStatusLight()
 
   ctrlOnGetStatusLight: (message) ->
-    console.log('onGetStatusLight',message,Message.TYPE_BBS_RETURN_STATUS_LIGHT)
+    if process.env.DEBUG_BBS_STATUS=='1'
+      console.log('onGetStatusLight',message,Message.TYPE_BBS_RETURN_STATUS_LIGHT)
     if message.type_of_message == Message.TYPE_BBS_RETURN_STATUS_LIGHT
       @lastState = message
-      console.log 'ctrlOnGetStatusLight', message
       @ctrlSendCloseService()
+      setTimeout @statusLight.bind(@),1000
     else
   #    @unexpected message
 
@@ -247,16 +232,8 @@ class HSCTRL extends HSCMD
       console.log "image> ", @start_message.advert.toString('base64')
     @client.write sendbuffer
 
-  startJob: () ->
-    @once 'ctrl_ready', () =>
-      console.log 'get start _startJob'
-      @_startJob()
-    @once 'ctrl_closeservice', () =>
-      console.log 'get start ctrl_closeservice'
-      @client.end()
-    @initCtrlPort()
 
-  _startJob: () ->
+  startJob: () ->
     if @serviceOpen==true
       console.log 'startJob DEFERED'
       setTimeout @startJob.bind(@), 500
@@ -293,17 +270,7 @@ class HSCTRL extends HSCMD
     
 
   # ++++++ STOP JOB
-
   stopJob: () ->
-    @once 'ctrl_ready', () =>
-      console.log 'get stop _stopJob'
-      @_stopJob()
-    @once 'ctrl_closeservice', () =>
-      console.log 'get stop ctrl_closeservice'
-      @client.end()
-    @initCtrlPort()
-
-  _stopJob: () ->
     if @serviceOpen==true
       console.log 'stopJob DEFERED'
       setTimeout @stopJob.bind(@), 100

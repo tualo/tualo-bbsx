@@ -1,4 +1,6 @@
 P = require './HSIMPRINT'
+path = require 'path'
+fs = require 'fs'
 
 module.exports =
 class HSEXPRESS extends P
@@ -43,7 +45,7 @@ class HSEXPRESS extends P
       res.send(JSON.stringify(result))
       return
 
-    if @client.destroyed==true
+    if @state==-1
       res.send(JSON.stringify({success: false,msg: "Keine Verbindung zur Maschine"}))
       return
 
@@ -106,6 +108,7 @@ class HSEXPRESS extends P
       res.send(JSON.stringify({success: true,msg: {} }))
       return
     @stopJob()
+    res.send(JSON.stringify({success: true,msg: me.lastState}))
 
   expressHotSwitch: (req, res) ->
     me = @

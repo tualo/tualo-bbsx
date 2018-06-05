@@ -37,22 +37,22 @@ class MessageWrapper
       message_size = data.readUInt32BE 4
       data.position+=4
 
-      if message_interface == 5
-        if message_type == Message.TYPE_ACK
-          size = data.readUInt16BE 4
-          data.position+=4
-          msg = new MSG2CUPREPARESIZE
-          data = data.slice 10
-          if data.length >= 8
-            data.position = 0
-            message_interface = data.readUInt16BE 0
-            data.position+=2
-            message_type = data.readUInt16BE 2
-            data.position+=2
-            message_size = data.readUInt32BE 4
-            data.position+=4
-          else
-            return -1
+      #if message_interface == 5
+      #  if message_type == Message.TYPE_ACK
+      #    size = data.readUInt16BE 4
+      #    data.position+=4
+      #    msg = new MSG2CUPREPARESIZE
+      #    data = data.slice 10
+      #    if data.length >= 8
+      #      data.position = 0
+      #      message_interface = data.readUInt16BE 0
+      #      data.position+=2
+      #      message_type = data.readUInt16BE 2
+      #      data.position+=2
+      #      message_size = data.readUInt32BE 4
+      #      data.position+=4
+      #    else
+      #      return -1
 
       if process.env.DEBUG_BBS_MSG=='1'
         console.log 'message_type',message_type
