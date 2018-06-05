@@ -41,7 +41,7 @@ class HSCTRL extends HSCMD
     #@ctrlConnectionTimeout = setTimeout fn,1000
     if @client
       @client.removeAllListeners()
-      
+
     @client = Net.createConnection @args.machine_port, @args.machine_ip, () => @onConnect()
     @client.on 'timeout', (err) ->
       if process.env.DEBUG_BBS_CONTROLLER=='1'
@@ -130,6 +130,9 @@ class HSCTRL extends HSCMD
 
   # ++++++++++ STATUS
   statusLight: () ->
+    @removeAllListeners 'ctrl_ready'
+    @removeAllListeners 'ctrl_closeservice'
+
     @once 'ctrl_ready', () =>
       console.log 'get status _statusLight'
       @_statusLight()
@@ -248,6 +251,9 @@ class HSCTRL extends HSCMD
     @client.write sendbuffer
 
   startJob: () ->
+    @removeAllListeners 'ctrl_ready'
+    @removeAllListeners 'ctrl_closeservice'
+    
     @once 'ctrl_ready', () =>
       console.log 'get start _startJob'
       @_startJob()
@@ -295,6 +301,9 @@ class HSCTRL extends HSCMD
   # ++++++ STOP JOB
 
   stopJob: () ->
+    @removeAllListeners 'ctrl_ready'
+    @removeAllListeners 'ctrl_closeservice'
+    
     @once 'ctrl_ready', () =>
       console.log 'get stop _stopJob'
       @_stopJob()
