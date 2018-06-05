@@ -28,20 +28,20 @@ class HSCTRL extends HSCMD
     
   initCtrlPort: () ->
     me = @
-    #clearTimeout @initTimer
-    #@lasteventname = 'none'
     console.log "HSCTRL", "initCtrlPort"
-    fn = () ->
-      clearTimeout me.ctrlConnectionTimeout
-      if me.client.connecting
-        me.client.destroy()
-        console.log 'CTRL','connection timeout'
-        me.emit 'ctrl_timeout', {msg:'socket timeout',code:'ETIMEDOUT',address:me.ip}
-        me.state = -1
+    #fn = () ->
+    #  clearTimeout me.ctrlConnectionTimeout
+    #  if me.client.connecting
+    #    me.client.destroy()
+    #    console.log 'CTRL','connection timeout'
+    #    me.emit 'ctrl_timeout', {msg:'socket timeout',code:'ETIMEDOUT',address:me.ip}
+    #    me.state = -1
         #setTimeout me.initCtrlPort.bind(me),500
 
     #@ctrlConnectionTimeout = setTimeout fn,1000
-
+    if @client
+      @client.removeAllListeners()
+      
     @client = Net.createConnection @args.machine_port, @args.machine_ip, () => @onConnect()
     @client.on 'timeout', (err) ->
       if process.env.DEBUG_BBS_CONTROLLER=='1'
