@@ -37,11 +37,11 @@ class MessageWrapper
       message_size = data.readUInt32BE 4
       data.position+=4
 
-      if message_interface == 5
-        if message_type == Message.TYPE_ACK
+      #if message_interface == 5
+      #  if message_type == Message.TYPE_ACK
       #    size = data.readUInt16BE 4
       #    data.position+=4
-          msg = new MSG2CUPREPARESIZE
+      #    msg = new MSG2CUPREPARESIZE
       #    data = data.slice 10
       #    if data.length >= 8
       #      data.position = 0

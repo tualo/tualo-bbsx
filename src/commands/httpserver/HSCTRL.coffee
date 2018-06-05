@@ -97,6 +97,7 @@ class HSCTRL extends HSCMD
   onConnect: () ->
     @serviceOpen = false
     clearTimeout @ctrlConnectionTimeout
+    console.log 'timeout cleared'
     console.log 'onConnect'
     @state = 1
     @emit 'ctrl_ready'
