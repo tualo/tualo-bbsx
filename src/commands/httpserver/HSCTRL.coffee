@@ -77,7 +77,7 @@ class HSCTRL extends HSCMD
     console.log 'HSCTRL','onData',hex
     message = MessageWrapper.getMessageObject data
     console.log 'HSCTRL','onData',message
-    if message.type_of_message == Message.TYPE_PREPARE_SIZE
+    if (message.interface_of_message==5 and message.type_of_message == 1) or (message.type_of_message == Message.TYPE_PREPARE_SIZE)
       buf = Buffer.from hex.substr(20),'hex'
       console.log 'HSCTRL','TYPE_PREPARE_SIZE',hex.substr(20), buf
       if buf.length>0
