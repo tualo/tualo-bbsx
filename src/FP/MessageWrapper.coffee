@@ -109,13 +109,14 @@ class MessageWrapper
 
       if msg == null
         msg = new MSG2DCNAK()
-        if process.env.DEBUG_BBS_MSG=='1'
-          console.error('unknown message type '+message_type.toString(16))
+        #if process.env.DEBUG_BBS_MSG=='1'
+        console.error('unknown message type '+message_type.toString(16))
 
       msg.setMessageType message_type
       msg.setMessageInterface message_interface
       temp_data = data.slice data.position
-      if temp_data.length>0
+      console.log 'temp_data',temp_data
+      if temp_data.length>8
         msg.readApplictiondata temp_data
 
     else
