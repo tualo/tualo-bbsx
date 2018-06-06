@@ -115,7 +115,8 @@ class MessageWrapper
       msg.setMessageType message_type
       msg.setMessageInterface message_interface
       temp_data = data.slice data.position
-      msg.readApplictiondata temp_data
+      if temp_data.length>0
+        msg.readApplictiondata temp_data
 
     else
       throw new Error "Incorrect Message length"
