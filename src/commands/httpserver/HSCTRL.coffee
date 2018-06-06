@@ -23,7 +23,7 @@ class HSCTRL extends HSCMD
     @serviceOpen = false
     @state = 0
     @lastState = null
-    @statusLightTimer = setInterval @statusLight.bind(@),2500
+    @statusLightTimer = setInterval @statusLight.bind(@),12500
     #@on 'start', @initCtrlPort
     
   initCtrlPort: () ->
