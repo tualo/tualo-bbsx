@@ -96,6 +96,11 @@ class MessageWrapper
       if message_type == Message.TYPE_PREPARE_SIZE
         if message_interface==5
           msg = new MSG2CUPREPARESIZE
+          
+      if message_type == Message.TYPE_ACK
+        if message_interface==5
+          msg = new MSG2CUPREPARESIZE
+
 
       if message_type == Message.TYPE_BBS_GET_STATUS
         msg = new MSG2CUGETSTATUS
