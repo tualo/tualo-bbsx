@@ -54,9 +54,9 @@ class MessageWrapper
       #    else
       #      return -1
 
-      #if process.env.DEBUG_BBS_MSG=='1'
-      console.log 'message_type',message_type
-      console.log 'message_interface',message_interface
+      if process.env.DEBUG_BBS_MSG=='1'
+        console.log 'message_type',message_type
+        console.log 'message_interface',message_interface
       if message_type == 65535
         if process.env.DEBUG_BBS_MSG=='1'
           console.log "MSG>>>",data.slice(18).toString('ascii')
@@ -120,10 +120,7 @@ class MessageWrapper
       msg.setMessageType message_type
       msg.setMessageInterface message_interface
       temp_data = data.slice data.position
-      console.log 'temp_data',temp_data
-      if temp_data.length>8
-        msg.readApplictiondata temp_data
-      else
+      msg.readApplictiondata temp_data
 
     else
       throw new Error "Incorrect Message length"
