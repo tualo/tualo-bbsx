@@ -164,7 +164,7 @@ class Status extends mixOf Command,EventEmitter
     @emit 'sequence_timeout'
     @client.end()
     if @quiet==false
-      console.error 'HSCTRL','onTimeout'
+      console.error 'HSCTRL','onTimeout * ',@client
 
   onError: (err) ->
     @emit 'sequence_error'
