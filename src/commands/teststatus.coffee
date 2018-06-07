@@ -142,6 +142,7 @@ class Teststatus extends mixOf Command,EventEmitter
     console.error 'HSCTRL','onTimeout'
 
   onError: (err) ->
+    console.error 'HSCTRL','onError'
     if err.code=='EADDRNOTAVAIL'
       console.error 'HSCTRL','machine offline EADDRNOTAVAIL'
     else if err.code=='ECONNREFUSED'
