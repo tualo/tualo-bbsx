@@ -5,7 +5,7 @@ fs = require 'fs'
 {EventEmitter} = require 'events'
 Net = require 'net'
 
-Status = require './Status'
+Status = require './status'
 
 module.exports =
 class Teststatus extends Status
