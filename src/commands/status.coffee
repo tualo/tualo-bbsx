@@ -162,13 +162,13 @@ class Status extends mixOf Command,EventEmitter
   
   onTimeout: () ->
     @emit 'sequence_timeout'
-    @client.end()
+    @client.destroy()
     if @quiet==false
       console.error 'HSCTRL','onTimeout * ',@client
 
   onError: (err) ->
     @emit 'sequence_error'
-    @client.end()
+    @client.destroy()
     if @quiet==false
       console.error 'HSCTRL','onError'
     if err.code=='EADDRNOTAVAIL'
