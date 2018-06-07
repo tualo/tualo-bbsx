@@ -132,7 +132,7 @@ class Teststatus extends mixOf Command,EventEmitter
     console.error 'HSCTRL','onEnd',data
 
   onClose: () ->
-    console.error 'HSCTRL','onClose'
+    console.error 'HSCTRL','onClose',new Date()
     @args.repeat--
     setTimeout @status.bind(@),1000
   
