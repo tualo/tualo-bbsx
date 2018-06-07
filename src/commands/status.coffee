@@ -51,7 +51,7 @@ class Status extends mixOf Command,EventEmitter
 
     if @args.repeat>0
       @client = Net.createConnection @args.port, @args.ip, @onConnect.bind(@)
-      @client.setTimeout 1200
+      @client.setTimeout 500
       @client.setNoDelay true
       @client.on 'close', @onClose.bind(@)
       @client.on 'end', @onEnd.bind(@)
@@ -62,6 +62,7 @@ class Status extends mixOf Command,EventEmitter
   onConnect: () ->
     if @quiet==false
       console.info 'onConnect', @args
+    @emit 'connected'
     @openService()
 
   openService: () ->
@@ -75,6 +76,7 @@ class Status extends mixOf Command,EventEmitter
     @client.write sendbuffer
     if @quiet==false
       console.info '>>>>>>', sendbuffer
+    @emit 'open_service'
 
   closeService: () ->
     message = new MSG2CUCLOSESERVICE
@@ -85,6 +87,7 @@ class Status extends mixOf Command,EventEmitter
     @client.write sendbuffer
     if @quiet==false
       console.info '>>>>>>', sendbuffer
+    @emit 'close_service'
 
   sendService: () ->
     message = new MSG2CUGETSTATUSLIGHT
@@ -95,6 +98,7 @@ class Status extends mixOf Command,EventEmitter
     @client.write sendbuffer
     if @quiet==false
       console.info '>>>>>>', sendbuffer
+    @emit 'send_service'
 
 
   onData: (data) ->
@@ -132,6 +136,8 @@ class Status extends mixOf Command,EventEmitter
       console.info 'HSCTRL','onData','OK',message
       # ok status message received
       # closing the service sequence
+      @last_message = message
+      @emit 'sequence_message', message
       @closeService()
     else
       # message was not expected here
@@ -148,16 +154,21 @@ class Status extends mixOf Command,EventEmitter
   onClose: () ->
     if @quiet==false
       console.error 'HSCTRL','onClose',new Date(),@args
+    @emit 'sequence_complete', @last_message
     @args.repeat--
     fn = () ->
       @run @args.ip,@args.port,@args.repeat
     setTimeout fn.bind(@),1000
   
   onTimeout: () ->
+    @emit 'sequence_timeout'
+    @client.end()
     if @quiet==false
       console.error 'HSCTRL','onTimeout'
 
   onError: (err) ->
+    @emit 'sequence_error'
+    @client.end()
     if @quiet==false
       console.error 'HSCTRL','onError'
     if err.code=='EADDRNOTAVAIL'
