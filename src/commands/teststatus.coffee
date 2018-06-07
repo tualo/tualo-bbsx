@@ -109,12 +109,9 @@ class Teststatus extends mixOf Command,EventEmitter
         #open service is ok
         @isOpenService = false
         @sendService()
-      else if message.serviceID == Message.SERVICE_STATUS_LIGHT and @isOpenService == false
+      else if (message.serviceID == Message.SERVICE_STATUS_LIGHT and @isOpenService == false) or (message.serviceID == 0 and @isOpenService == false)
         console.error 'HSCTRL','onData','OK WE ARE DONE!'
-      else if message.serviceID == 0 and @isOpenService == false
-        console.error 'HSCTRL','onData','OK WE ARE DONE! message.serviceID == 0'
         @client.end()
-        console.error 'HSCTRL','after @client.end()',@client.destroyed
       else
         # message was not expected here
         # to do
