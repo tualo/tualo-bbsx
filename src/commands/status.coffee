@@ -51,7 +51,7 @@ class Status extends mixOf Command,EventEmitter
 
     if @args.repeat>0
       @client = Net.createConnection @args.port, @args.ip, @onConnect.bind(@)
-      @client.setTimeout 500
+      @client.setTimeout 1200
       @client.setNoDelay true
       @client.on 'close', @onClose.bind(@)
       @client.on 'end', @onEnd.bind(@)
