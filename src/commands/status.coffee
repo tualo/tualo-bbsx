@@ -42,6 +42,13 @@ class Status extends mixOf Command,EventEmitter
     if args.port
       @run args.ip,args.port,args.repeat*1
 
+  @sequence_message: new MSG2CUGETSTATUSLIGHT
+  @open_service_id: Message.SERVICE_STATUS_LIGHT
+  @service_return_type: Message.TYPE_BBS_RETURN_STATUS_LIGHT
+
+  message: () ->
+    return @sequence_message
+
   run: (ip,port,repeat) ->
     @args =
       ip: ip
@@ -68,7 +75,7 @@ class Status extends mixOf Command,EventEmitter
   openService: () ->
     @isOpenService = true
     message = new MSG2CUOPENSERVICE
-    message.setServiceID(Message.SERVICE_STATUS_LIGHT)
+    message.setServiceID @open_service_id
     sendbuffer = message.toFullByteArray()
     sizemessage = new MSG2CUPREPARESIZE
     sizemessage.setSize sendbuffer.length
@@ -90,8 +97,7 @@ class Status extends mixOf Command,EventEmitter
     @emit 'close_service'
 
   sendService: () ->
-    message = new MSG2CUGETSTATUSLIGHT
-    sendbuffer = message.toFullByteArray()
+    sendbuffer = @sequence_message.toFullByteArray()
     sizemessage = new MSG2CUPREPARESIZE
     sizemessage.setSize sendbuffer.length
     @client.write sizemessage.getBuffer()
@@ -120,11 +126,11 @@ class Status extends mixOf Command,EventEmitter
       if @quiet==false
         console.error 'HSCTRL','onData','Message.TYPE_NAK',message
     else if message.interface_of_message == Message.INTERFACE_SO and message.type_of_message == Message.TYPE_ACK
-      if message.serviceID == Message.SERVICE_STATUS_LIGHT and @isOpenService == true
+      if message.serviceID == @open_service_id and @isOpenService == true
         #open service is ok
         @isOpenService = false
         @sendService()
-      else if (message.serviceID == Message.SERVICE_STATUS_LIGHT and @isOpenService == false) or (message.serviceID == 0 and @isOpenService == false)
+      else if (message.serviceID == @open_service_id and @isOpenService == false) or (message.serviceID == 0 and @isOpenService == false)
         console.error 'HSCTRL','onData','OK WE ARE DONE!'
         @client.end()
       else
@@ -132,7 +138,7 @@ class Status extends mixOf Command,EventEmitter
         # to do
         if @quiet==false
           console.error 'HSCTRL','onData','FAIL',message
-    else if message.interface_of_message == Message.INTERFACE_DI and message.type_of_message == Message.TYPE_BBS_RETURN_STATUS_LIGHT
+    else if message.interface_of_message == Message.INTERFACE_DI and message.type_of_message == @service_return_type
       console.info 'HSCTRL','onData','OK',message
       # ok status message received
       # closing the service sequence
@@ -143,7 +149,7 @@ class Status extends mixOf Command,EventEmitter
       # message was not expected here
       # to do
       if @quiet==false
-        console.error 'HSCTRL','onData','FAIL','message was not expected here',message,Message.TYPE_ACK,Message.TYPE_BBS_RETURN_STATUS_LIGHT
+        console.error 'HSCTRL','onData','FAIL','message was not expected here',message,Message.TYPE_ACK, @service_return_type
 
 
 
