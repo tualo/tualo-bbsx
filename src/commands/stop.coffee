@@ -11,7 +11,7 @@ MSG2DCACK = require '../FP/MSG2DCACK'
 MSG2CUOPENSERVICE = require '../FP/MSG2CUOPENSERVICE'
 MSG2CUCLOSESERVICE = require '../FP/MSG2CUCLOSESERVICE'
 MSG2CUPREPARESIZE = require '../FP/MSG2CUPREPARESIZE'
-MSG2CUGETSTATUSLIGHT = require '../FP/MSG2CUGETSTATUSLIGHT'
+MSG2CUSTOPPRINTJOB = require '../FP/MSG2CUSTOPPRINTJOB'
 
 Sequence = require '../Sequence/Seq'
 
@@ -23,15 +23,14 @@ mixOf = (base, mixins...) ->
   Mixed
 
 module.exports =
-class Status extends mixOf Command,Sequence
-  @commandName: 'status'
+class Stop extends mixOf Command,Sequence
+  @commandName: 'stop'
   @commandArgs: [
       'ip',
-      'port',
-      'repeat'
+      'port'
   ]
 
-  @commandShortDescription: 'running the bbs machine controll service'
+  @commandShortDescription: 'stop a print job'
   @options: []
 
   @help: () ->
@@ -42,8 +41,8 @@ class Status extends mixOf Command,Sequence
   action: (options,args) ->
     @quiet = false
     if args.port
-      @run args.ip,args.port,args.repeat*1
+      @run args.ip,args.port,1
 
-  sequence_message: new MSG2CUGETSTATUSLIGHT
-  open_service_id: Message.SERVICE_STATUS_LIGHT
-  service_return_type: Message.TYPE_BBS_RETURN_STATUS_LIGHT
+  sequence_message: new MSG2CUSTOPPRINTJOB
+  open_service_id: Message.SERVICE_BBS_PRINTJOB
+  service_return_type: Message.TYPE_BBS_STOP_PRINTJOB
