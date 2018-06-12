@@ -45,7 +45,7 @@ class Message extends EventEmitter
     @interface_of_message = 0
     @type_of_message = 0
     @bytes_of_application_data = 0
-    @app_data = new Buffer 0
+    @app_data = new Buffer.alloc 0
 
   setMessageInterface: (num) ->
     @interface_of_message = num
@@ -56,11 +56,11 @@ class Message extends EventEmitter
   readApplictiondata: (buffer) ->
     @app_data = buffer
   setApplictiondata: () ->
-    @app_data = new Buffer 0
+    @app_data = new Buffer.alloc 0
 
   toFullByteArray: () ->
     @setApplictiondata()
-    res = new Buffer 8 + @app_data.length
+    res = new Buffer.alloc(8 + @app_data.length)
     res.writeUInt16BE @interface_of_message, 0
     res.writeUInt16BE @type_of_message, 2
     res.writeUInt32BE @app_data.length, 4

@@ -18,12 +18,12 @@ class MSG2CUPREPARESIZE extends Message
 
   setApplictiondata: (data) ->
     position = 0
-    @app_data = new Buffer 2
+    @app_data = new Buffer.alloc 2
     @app_data.writeUInt16BE @size,position
 
   getBuffer: () ->
     @setApplictiondata()
-    buf = new Buffer 10
+    buf = new Buffer.alloc 10
     buf.writeUInt16BE @interface_of_message, 0
     buf.writeUInt16BE @type_of_message, 2
     buf.writeUInt32BE 0x00010000, 4

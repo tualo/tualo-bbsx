@@ -21,7 +21,7 @@ class MSG2CUSTARTPRINTJOB extends Message
     @endorsement_text = "1223456"
 
     @endorsement2_text = "Test"
-    @advert = new Buffer 0
+    @advert = new Buffer.alloc 0
 
     @town_circle_id = 0
     @town_circle = ""
@@ -143,7 +143,7 @@ class MSG2CUSTARTPRINTJOB extends Message
 
   setApplictiondata: (data) ->
     position = 0
-    @app_data = new Buffer 8096
+    @app_data = new Buffer.alloc 8096
     @app_data.writeUInt32BE @job_id, position
     position+=4
 

@@ -37,7 +37,7 @@ class MSG2CURETURNSTATUSLIGHT extends Message
 
   setApplictiondata: () ->
     position = 0
-    @app_data = new Buffer 10
+    @app_data = new Buffer.alloc 10
 
     @app_data.writeUInt8 @available_scale, position
     position+=1

@@ -16,5 +16,5 @@ class MSG2CUOPENSERVICE extends Message
   readApplictiondata: (data) ->
     @serviceID = data.readUInt16BE 0
   setApplictiondata: () ->
-    @app_data = new Buffer 2
+    @app_data = new Buffer.alloc 2
     @app_data.writeUInt16BE @serviceID, 0

@@ -78,7 +78,7 @@ class MSG2HSNEXTIMPRINT extends Message
 
 
   setApplictiondata: () ->
-    data = new Buffer 60
+    data = new Buffer.alloc 60
 
     position = 0
     data.writeUInt32BE @job_id, position
@@ -92,9 +92,9 @@ class MSG2HSNEXTIMPRINT extends Message
     data.writeUInt32BE @imprint_no, position # @low_imprint_no
     position+=4
 
-    @creationDate = new Buffer(8)
+    @creationDate = new Buffer.alloc(8)
     position+=8
-    @printedDate = new Buffer(8)
+    @printedDate = new Buffer.alloc(8)
     position+=8
 
     data.writeUInt32BE @endorsement_id, position
