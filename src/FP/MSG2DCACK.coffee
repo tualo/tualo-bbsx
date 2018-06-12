@@ -9,7 +9,7 @@ class MSG2DCACK extends Message
   setServiceID: (id) ->
     @serviceID = id
   setApplictiondata: () ->
-    @app_data = new Buffer.alloc 2
+    @app_data = Buffer.alloc 2
     @app_data.writeUInt16BE @serviceID
   readApplictiondata: (data) ->
     @serviceID = data.readUInt16BE 0

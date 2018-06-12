@@ -18,7 +18,7 @@ class MSG2CUGETSTATUS extends Message
     @serviceID = data.readUInt16BE position+=2
 
   setApplictiondata: () ->
-    @app_data = new Buffer.alloc 3
+    @app_data = Buffer.alloc 3
     position = -1
     @app_data.writeUInt8 @b_unkown,position+=1
     @app_data.writeUInt16BE @statusID,position+=2

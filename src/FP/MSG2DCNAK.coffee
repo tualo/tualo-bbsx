@@ -15,7 +15,7 @@ class MSG2DCNAK extends Message
   setInfo:  (txt_info) ->
     @info = txt_info
   setApplictiondata: () ->
-    @app_data = new Buffer.alloc 6+info.length
+    @app_data = Buffer.alloc 6+info.length
     @app_data.writeUInt16BE @serviceID,0
     @app_data.writeUInt16BE errorCode,2
     @app_data.writeUInt16BE info.length,4

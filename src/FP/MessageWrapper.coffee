@@ -26,7 +26,7 @@ class MessageWrapper
     message_interface = 0
     message_size = 0
     msg = null
-    temp_data = new Buffer data.length-8
+    temp_data = Buffer.alloc data.length-8
     if data.length >= 8
 
       data.position = 0

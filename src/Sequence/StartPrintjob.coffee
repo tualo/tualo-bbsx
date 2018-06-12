@@ -43,7 +43,7 @@ class StartPrintjob extends Sequence
       @start_message.setAdvert Buffer.from(val,'base64')
     catch e
       console.log 'StartPrintjob setAdvertHex error', val
-      @start_message.setAdvert new Buffer(val,'base64')
+      @start_message.setAdvert Buffer.form(val,'base64')
 
   setTownCircleID: (val) ->
     @start_message.setTownCircleID parseInt(val)

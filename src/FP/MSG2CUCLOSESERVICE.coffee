@@ -9,4 +9,4 @@ class MSG2CUCLOSESERVICE extends Message
     @setMessageInterface Message.INTERFACE_SO
     @setMessageType Message.TYPE_CLOSE_SERVICE
   setApplictiondata: () ->
-    @app_data = new Buffer.alloc 0
+    @app_data = Buffer.alloc 0

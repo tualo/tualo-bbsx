@@ -6,7 +6,7 @@ class MSG2CUGETSTATUSRESPONSE extends Message
   constructor: () ->
     @b_unkown = 1
     @statusID = 0x191b
-    @version = new Buffer.alloc 0
+    @version = Buffer.alloc 0
     @setMessageInterface Message.INTERFACE_DO
     @setMessageType Message.TYPE_BBS_GET_STATUS_RESPONSE
 
@@ -21,7 +21,7 @@ class MSG2CUGETSTATUSRESPONSE extends Message
     @version = data.slice position
 
   setApplictiondata: () ->
-    @app_data = new Buffer.alloc 7 + version.length
+    @app_data = Buffer.alloc 7 + version.length
     position = -1
     @app_data.writeUInt8 @b_unkown, position+=1
     @app_data.writeUInt16BE @statusID, position+=2
