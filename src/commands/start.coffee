@@ -14,7 +14,7 @@ MSG2CUPREPARESIZE = require '../FP/MSG2CUPREPARESIZE'
 MSG2CUSTARTPRINTJOB = require '../FP/MSG2CUSTARTPRINTJOB'
 Imprint = require '../Service/Imprint'
 
-Sequence = require '../Sequence/Seq'
+Sequence = require '../Sequence/SeqStatus'
 
 mixOf = (base, mixins...) ->
   class Mixed extends base
@@ -50,9 +50,6 @@ class Start extends mixOf Command,Sequence
         @args = args
         setTimeout @deferedRun.bind(@), 1000
 
-  sequence_message: new MSG2CUSTARTPRINTJOB
-  open_service_id: Message.SERVICE_BBS_PRINTJOB
-  service_return_type: Message.TYPE_BBS_START_PRINTJOB
 
   deferedRun: () ->
     args = @args

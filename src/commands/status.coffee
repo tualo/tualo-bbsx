@@ -13,7 +13,7 @@ MSG2CUCLOSESERVICE = require '../FP/MSG2CUCLOSESERVICE'
 MSG2CUPREPARESIZE = require '../FP/MSG2CUPREPARESIZE'
 MSG2CUGETSTATUSLIGHT = require '../FP/MSG2CUGETSTATUSLIGHT'
 
-Sequence = require '../Sequence/Seq'
+Sequence = require '../Sequence/SeqStatus'
 
 mixOf = (base, mixins...) ->
   class Mixed extends base
@@ -44,6 +44,3 @@ class Status extends mixOf Command,Sequence
     if args.port
       @run args.ip,args.port,args.repeat*1
 
-  sequence_message: new MSG2CUGETSTATUSLIGHT
-  open_service_id: Message.SERVICE_STATUS_LIGHT
-  service_return_type: Message.TYPE_BBS_RETURN_STATUS_LIGHT

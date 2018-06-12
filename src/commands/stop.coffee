@@ -13,7 +13,7 @@ MSG2CUCLOSESERVICE = require '../FP/MSG2CUCLOSESERVICE'
 MSG2CUPREPARESIZE = require '../FP/MSG2CUPREPARESIZE'
 MSG2CUSTOPPRINTJOB = require '../FP/MSG2CUSTOPPRINTJOB'
 
-Sequence = require '../Sequence/Seq'
+Sequence = require '../Sequence/SeqStatus'
 
 mixOf = (base, mixins...) ->
   class Mixed extends base
@@ -42,7 +42,3 @@ class Stop extends mixOf Command,Sequence
     @quiet = false
     if args.port
       @run args.ip,args.port,1
-
-  sequence_message: new MSG2CUSTOPPRINTJOB
-  open_service_id: Message.SERVICE_BBS_PRINTJOB
-  service_return_type: Message.TYPE_BBS_STOP_PRINTJOB

@@ -109,7 +109,8 @@ class Seq extends EventEmitter
         @isOpenService = false
         @sendService()
       else if (message.serviceID == @open_service_id and @isOpenService == false) or (message.serviceID == 0 and @isOpenService == false)
-        console.error 'HSCTRL','onData','OK WE ARE DONE!'
+        if @quiet==false
+          console.error 'HSCTRL','onData','OK WE ARE DONE!'
         @client.end()
       else
         # message was not expected here
@@ -117,7 +118,8 @@ class Seq extends EventEmitter
         if @quiet==false
           console.error 'HSCTRL','onData','FAIL',message
     else if message.interface_of_message == Message.INTERFACE_DI and message.type_of_message == @service_return_type
-      console.info 'HSCTRL','onData','OK',message
+      if @quiet==false
+        console.info 'HSCTRL','onData','OK',message
       # ok status message received
       # closing the service sequence
       @last_message = message
@@ -145,13 +147,13 @@ class Seq extends EventEmitter
     setTimeout fn.bind(@),1000
   
   onTimeout: () ->
-    @emit 'sequence_timeout'
+    @emit 'sequence_timeout', {msg:'socket timeout',code:'ETIMEDOUT',address:@args.ip}
     @client.destroy()
     if @quiet==false
       console.error 'HSCTRL','onTimeout * ',@client
 
   onError: (err) ->
-    @emit 'sequence_error'
+    @emit 'sequence_error', err
     @client.destroy()
     if @quiet==false
       console.error 'HSCTRL','onError'

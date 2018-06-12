@@ -2,6 +2,12 @@ P = require './HSIMPRINT'
 path = require 'path'
 fs = require 'fs'
 
+#
+SeqStart = require '../../Sequence/SeqStart'
+SeqStop = require '../../Sequence/SeqStop'
+
+
+
 module.exports =
 class HSEXPRESS extends P
   constructor: ->
@@ -77,6 +83,7 @@ class HSEXPRESS extends P
 
   expressStatus: (req, res) ->
     me = @
+    console.log 'expressStatus','status',@lastState
     if me.hasMachine
       res.send(JSON.stringify({success: false,msg: "Keine Verbindung zur Maschine"}))
       return
@@ -107,7 +114,8 @@ class HSEXPRESS extends P
       me.start_without_printing_running = false
       res.send(JSON.stringify({success: true,msg: {} }))
       return
-    @stopJob()
+    seq = new SeqStop()
+    seq.run @args.machine_ip,@args.machine_port,1
     res.send(JSON.stringify({success: true,msg: me.lastState}))
 
   expressHotSwitch: (req, res) ->
@@ -208,21 +216,13 @@ class HSEXPRESS extends P
         #message.advert="AgQqPUIqe5iEMp4N+QAAAABqAAAAAAAAAAAAAAC5PAAAAAAAAAAAIQIiAQAAAAAAAAAAAAAAAAAALAAAADkATQD//////////wsAV2VyYnVuZy0wNAASAPP7B/PxKgP28/v/8/v/8/sW9QIHKj1CKnuYhMaombsAAAAAEgAAAAAAAAAAAAAA"
         me.lastStartJobMessage = message
 
-        @initStartJobMessage()
-
+        
         me.job_id = message.job_id
         if typeof message.addressfield=='string'
           me.addressfield = message.addressfield
-        me.setJobId(message.job_id)
-        me.setWeightMode(message.weight_mode)
-        me.customerNumber = message.customerNumber
-        me.setCustomerNumber(message.customerNumber)
         if message.waregroup?
           me.waregroup = message.waregroup
-        me.setPrintOffset(message.label_offset)
-        me.setDateAhead(message.date_offset)
-        me.setPrintDate(message.print_date)
-        me.setPrintEndorsement(message.print_endorsement)
+        me.customerNumber = message.customerNumber
         endorsement1 = ''
         if message.endorsement1
           endorsement1 = message.endorsement1
@@ -233,14 +233,32 @@ class HSEXPRESS extends P
         if message.advert
           if message.advert.length>30
             adv = message.advert
-        me.setEndorsementText1(endorsement1)
-        me.setEndorsementText2(endorsement2)
-        if adv.length>30
-          me.setAdvertHex adv
 
-        me.setImprintChannelPort(me.imprint.getPort())
-        me.setImprintChannelIP(me.imprint.getIP())
-        me.startJob()
+        seq = new SeqStart()
+        seq.quiet =false
+        seq.on 'sequence_message', (msg) ->
+          console.log('sequence_message',msg)
+        seq.on 'sequence_error', (err) ->
+          console.log(err)
+        seq.on 'sequence_timeout', (err) ->
+          console.log(err)
+
+        seq.message().setJobId(message.job_id)
+        seq.message().setWeightMode(message.weight_mode)
+        seq.message().setCustomerNumber(message.customerNumber)
+        seq.message().setPrintOffset(message.label_offset)
+        seq.message().setDateAhead(message.date_offset)
+        seq.message().setPrintDate(message.print_date)
+        seq.message().setPrintEndorsement(message.print_endorsement)
+        seq.message().setEndorsementText1(endorsement1)
+        seq.message().setEndorsementText2(endorsement2)
+        #if adv.length>30
+        #  seq.message().setAdvertHex adv
+        seq.message().setImprintChannelPort(me.imprint.getPort())
+        seq.message().setImprintChannelIP(me.imprint.getIP())
+
+        seq.run @args.machine_ip,@args.machine_port,1
+        res.send(JSON.stringify({success: true,msg: "Job gestartet",ip:@args.machine_ip,port:@args.machine_port}))
     catch e
       res.send(JSON.stringify({success: false,msg: e.message}))
 

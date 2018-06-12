@@ -66,6 +66,8 @@ class MSG2CUSTARTPRINTJOB extends Message
     @endorsement2_text = val
   setAdvert: (val) ->
     @advert = val
+  setAdvertHex: (val) ->
+    @setAdvert Buffer.from(val,'base64')
   setTownCircleID: (val) ->
     @town_circle_id = val
   setTownCircle: (val) ->
